@@ -66,8 +66,49 @@ class User extends Model
         }
     }
 
+    // Lougout da sessão.
     public static function logout()
     {
         $_SESSION[User::SESSION] = null;
+    }
+
+    /**
+     * Lista todos os usuários.
+     * b.desperson = nome da pessoa na tb_persons
+     * 
+     * @return Hcode\DB\Sql $sql
+     */ 
+    public static function listAll()
+    {
+        $sql = new Sql();
+
+        return $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+    }
+
+    /**
+     * Os dados são salvos no banco utilizando a procedure pre-criada chamada "sp_users_save"
+     * 
+     * Ordem dos dados na procedure:
+     * pdesperson VARCHAR(64), 
+     * pdeslogin VARCHAR(64), 
+     * pdespassword VARCHAR(256), 
+     * pdesemail VARCHAR(128), 
+     * pnrphone BIGINT, 
+     * pinadmin TINYINT
+     */
+    public function save()
+    {
+        $sql = new Sql();
+
+        $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+            ":desperson" => $this->getdesperson(),
+            ":deslogin" => $this->getdeslogin(),
+            ":despassword" => $this->getdespassword(),
+            ":desemail" => $this->getdesemail(),
+            ":nrphone" => $this->getnrphone(),
+            ":inadmin" => $this->getinadmin()
+        ));
+
+        $this->setData($results[0]);
     }
 }
