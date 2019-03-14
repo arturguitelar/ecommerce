@@ -16,16 +16,17 @@ class Page
      * O construtor da classe recebe as variáveis que vem
      * com cada rota.
      *
-     * @param array     $opts  Route options
+     * @param array $opts Route options
+     * @param string $tpl_dir View dir
      */
-    public function __construct($opts = array())
+    public function __construct($opts = array(), $tpl_dir = "/views/")
     {
         // O último array sempre sobreescreve os anteriores.
         $this->options = array_merge($this->defaults, $opts);
 
         // As views são buscadas através do diretório root do projeto.
         $config = array(
-            "tpl_dir"       => $_SERVER["DOCUMENT_ROOT"] . "/views/",
+            "tpl_dir"       => $_SERVER["DOCUMENT_ROOT"] . $tpl_dir,
             "cache_dir"     => $_SERVER["DOCUMENT_ROOT"] . "/views-cache/",
             "debug"         => false // set to false to improve the speed
         );
