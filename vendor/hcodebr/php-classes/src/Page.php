@@ -9,6 +9,8 @@ class Page
     private $tpl;
     private $options = [];
     private $defaults = [
+        "header" => true,
+        "footer" => true,
         "data" => []
     ];
 
@@ -38,7 +40,7 @@ class Page
         $this->setData($this->options["data"]);
 
         // O Header vai se repetir em todas as páginas. Logo, será o arquivo de entrada.
-        $this->tpl->draw("header");
+        if ($this->options["header"] === true) $this->tpl->draw("header");
     }
 
     /**
@@ -70,6 +72,6 @@ class Page
     public function __destruct()
     {
         // o Footer também se repete em todas as páginas.
-        $this->tpl->draw("footer");
+        if ($this->options["footer"] === true) $this->tpl->draw("footer");
     }
 }
