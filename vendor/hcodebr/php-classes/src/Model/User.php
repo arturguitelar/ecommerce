@@ -111,4 +111,57 @@ class User extends Model
 
         $this->setData($results[0]);
     }
+
+    /** 
+     * Pegando usuário no banco pelo id.
+    */
+    public function get($iduser)
+    {
+        $sql = new Sql();
+
+        $results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser", array(
+            ":iduser" => $iduser
+        ));
+
+        $this->setData($results[0]);
+    }
+
+    /**
+     * Fazendo update no registro de usuário.
+     * 
+     * Da mesma foram que o método save, utiliza-se a procedure no banco que será acessada
+     * para fazer o update dos dados.
+     * A diferença é que desta vez enviamos o iduser.
+     */
+    public function update()
+    {
+        $sql = new Sql();
+
+        $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+            ":iduser" => $this->getiduser(),
+            ":desperson" => $this->getdesperson(),
+            ":deslogin" => $this->getdeslogin(),
+            ":despassword" => $this->getdespassword(),
+            ":desemail" => $this->getdesemail(),
+            ":nrphone" => $this->getnrphone(),
+            ":inadmin" => $this->getinadmin()
+        ));
+
+        $this->setData($results[0]);
+    }
+
+    /**
+     * Deletando usuário.
+     * 
+     * Também será usada uma procedure definida previamente no banco.
+     */
+    public function delete()
+    {
+        $sql = new Sql();
+
+        $sql->query("CALL sp_users_delete(:iduser)", array(
+            ":iduser" => $this->getiduser()
+        ));
+
+    }
 }

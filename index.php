@@ -73,6 +73,16 @@ $app->get('/admin/logout', function() {
 */
 $app->get('/admin/users/:iduser/delete', function($iduser) {
 	User::verifyLogin();
+
+	$user = new User();
+
+	// garantindo que o id passado será um inteiro
+	$user->get((int) $iduser);
+
+	$user->delete();
+
+	header("Location: /admin/users");
+	exit;
 });
 
 /* Users - listAll */
@@ -100,10 +110,17 @@ $app->get('/admin/users/create', function() {
 /* Users - update */
 $app->get('/admin/users/:iduser', function($iduser) {
 	User::verifyLogin();
+
+	$user = new User();
+
+	// certificando-se que o id do usuário será um número inteiro
+	$user->get((int) $iduser);
 	
 	$page = new PageAdmin();
 	
-	$page->setTpl("users-update");
+	$page->setTpl("users-update", array(
+		"user" => $user->getValues()
+	));
 });
 
 /* Users - post create */
@@ -126,6 +143,17 @@ $app->post('/admin/users/create', function() {
 /* Users - post update */
 $app->post('/admin/users/:iduser', function($iduser) {
 	User::verifyLogin();
+
+	$user = new User();
+
+	$user->get((int) $iduser);
+
+	$user->setData($_POST);
+
+	$user->update();
+
+	header("Location: /admin/users");
+	exit;
 });
 
 
