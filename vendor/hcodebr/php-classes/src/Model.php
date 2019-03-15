@@ -10,8 +10,8 @@ class Model
     /** 
      * Utilizando método mágico para saber quando um objeto é chamado.
      * 
-     * @param $name
-     * @param $args
+     * @param string $name
+     * @param mixed $args
     */
     public function __call($name, $args)
     {
@@ -44,7 +44,7 @@ class Model
     }
 
     /** 
-     * Utilizando getters and setters pelos métodos mágicos extendendo da classe Model.
+     * Método que criar os sets de acordo com os registros no banco de dados.
      * Pra cada campo retornado da consullta será criado um atributo com o valor 
      * dessas informações.
      * 
@@ -59,6 +59,11 @@ class Model
         }
     }
 
+    /**
+     * Retorna um array com os dados do usuário.
+     * 
+     * @return array $this->values
+     */
     public function getValues()
     {
         return $this->values;
