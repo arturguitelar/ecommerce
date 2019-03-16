@@ -6,15 +6,16 @@ require_once("vendor/autoload.php");
 
 use Slim\Slim;
 use Hcode\Page;
-use Hcode\Model\User;
 use Hcode\PageAdmin;
+use Hcode\Model\User;
+use Hcode\Model\Category;
 
 $app = new Slim();
 
-$app->config('debug', true);
+$app->config("debug", true);
 
 /* home do site */
-$app->get('/', function() {
+$app->get("/", function() {
     
 	$page = new Page();
 
@@ -23,7 +24,7 @@ $app->get('/', function() {
 });
 
 /* home do admin */
-$app->get('/admin', function() {
+$app->get("/admin", function() {
 	// validando a sessão do usuário
 	User::verifyLogin();
 
@@ -34,7 +35,7 @@ $app->get('/admin', function() {
 });
 
 /* Login */
-$app->get('/admin/login', function() {
+$app->get("/admin/login", function() {
 	// O header e o footer da página de login são diferentes.
 	// O padrão precisa ser desabilitado através de parâmetros num array.
 	$page = new PageAdmin([
@@ -46,7 +47,7 @@ $app->get('/admin/login', function() {
 
 });
 
-$app->post('/admin/login', function() {
+$app->post("/admin/login", function() {
 	User::login($_POST["login"], $_POST["password"]);
 
 	header("Location: /admin");
@@ -54,7 +55,7 @@ $app->post('/admin/login', function() {
 });
 
 /* Logout */
-$app->get('/admin/logout', function() {
+$app->get("/admin/logout", function() {
 	User::logout();
 
 	header("Location: /admin/login");
@@ -71,7 +72,7 @@ $app->get('/admin/logout', function() {
  * chama a url /admin/users/:iduser/ para que o Slim entenda
  * que não é a mesma rota. Pra deixar mais organizado eu coloquei aqui em cima.
 */
-$app->get('/admin/users/:iduser/delete', function($iduser) {
+$app->get("/admin/users/:iduser/delete", function($iduser) {
 	User::verifyLogin();
 
 	$user = new User();
@@ -86,7 +87,7 @@ $app->get('/admin/users/:iduser/delete', function($iduser) {
 });
 
 /* Users - listAll */
-$app->get('/admin/users', function() {
+$app->get("/admin/users", function() {
 	User::verifyLogin();
 
 	// lista os usuários do banco...
@@ -99,7 +100,7 @@ $app->get('/admin/users', function() {
 });
 
 /* Users - create */
-$app->get('/admin/users/create', function() {
+$app->get("/admin/users/create", function() {
 	User::verifyLogin();
 	
 	$page = new PageAdmin();
@@ -108,7 +109,7 @@ $app->get('/admin/users/create', function() {
 });
 
 /* Users - update */
-$app->get('/admin/users/:iduser', function($iduser) {
+$app->get("/admin/users/:iduser", function($iduser) {
 	User::verifyLogin();
 
 	$user = new User();
@@ -124,7 +125,7 @@ $app->get('/admin/users/:iduser', function($iduser) {
 });
 
 /* Users - post create - salvando de fato */
-$app->post('/admin/users/create', function() {
+$app->post("/admin/users/create", function() {
 	User::verifyLogin();
 
 	$user = new User();
@@ -141,7 +142,7 @@ $app->post('/admin/users/create', function() {
 });
 
 /* Users - post update - salvando a edição */
-$app->post('/admin/users/:iduser', function($iduser) {
+$app->post("/admin/users/:iduser", function($iduser) {
 	User::verifyLogin();
 
 	$user = new User();
@@ -159,7 +160,7 @@ $app->post('/admin/users/:iduser', function($iduser) {
 });
 
 /* Admin - forgot */
-$app->get('/admin/forgot', function() {
+$app->get("/admin/forgot", function() {
 	// tirando o header e footer padrão
 	$page = new PageAdmin([
 		"header" => false,
@@ -169,14 +170,14 @@ $app->get('/admin/forgot', function() {
 	$page->setTpl("forgot");
 });
 
-$app->post('/admin/forgot', function() {
+$app->post("/admin/forgot", function() {
 	$user = User::getForgot($_POST["email"]);
 
 	header("Location: /admin/forgot/sent");
 	exit;
 });
 
-$app->get('/admin/forgot/sent', function() {
+$app->get("/admin/forgot/sent", function() {
 	$page = new PageAdmin([
 		"header" => false,
 		"footer" => false
@@ -185,7 +186,7 @@ $app->get('/admin/forgot/sent', function() {
 	$page->setTpl("forgot-sent");
 });
 
-$app->get('/admin/forgot/reset', function() {
+$app->get("/admin/forgot/reset", function() {
 
 	$user = User::validForgotDecrypt($_GET["code"]);
 
@@ -200,7 +201,7 @@ $app->get('/admin/forgot/reset', function() {
 	));
 });
 
-$app->post('/admin/forgot/reset', function() {
+$app->post("/admin/forgot/reset", function() {
 
 	// dados do forgot
 	$forgot = User::validForgotDecrypt($_POST["code"]);
@@ -221,6 +222,82 @@ $app->post('/admin/forgot/reset', function() {
 	]);
 
 	$page->setTpl("forgot-reset-sucess");
+});
+
+/** Categories */
+$app->get("/admin/categories", function() {
+	User::verifyLogin();
+
+	$categories = Category::listAll();
+	
+	$page = new PageAdmin();
+
+	$page->setTpl("categories", [
+		"categories" => $categories
+	]);
+});
+
+$app->get("/admin/categories/create", function() {
+	User::verifyLogin();
+
+	$page = new PageAdmin();
+	
+	$page->setTpl("categories-create");
+});
+
+$app->post("/admin/categories/create", function() {
+	User::verifyLogin();
+
+	$category = new Category();
+	
+	$category->setData($_POST);
+	
+	$category->save();
+	
+	header("Location: /admin/categories");
+	exit;
+});
+
+$app->get("/admin/categories/:idcategory/delete", function($idcategory) {
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int) $idcategory);
+
+	$category->delete();
+
+	header("Location: /admin/categories");
+	exit;
+});
+
+$app->get("/admin/categories/:idcategory", function($idcategory) {
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int) $idcategory);
+	
+	$page = new PageAdmin();
+
+	$page->setTpl("categories-update", [
+		"category" => $category->getValues()
+	]);
+});
+
+$app->post("/admin/categories/:idcategory", function($idcategory) {
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int) $idcategory);
+
+	$category->setData($_POST);
+
+	$category->save();
+
+	header("Location: /admin/categories");
+	exit;
 });
 
 $app->run();
