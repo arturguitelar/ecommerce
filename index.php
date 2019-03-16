@@ -123,7 +123,7 @@ $app->get('/admin/users/:iduser', function($iduser) {
 	));
 });
 
-/* Users - post create */
+/* Users - post create - salvando de fato */
 $app->post('/admin/users/create', function() {
 	User::verifyLogin();
 
@@ -140,13 +140,15 @@ $app->post('/admin/users/create', function() {
 	exit;
 });
 
-/* Users - post update */
+/* Users - post update - salvando a edição */
 $app->post('/admin/users/:iduser', function($iduser) {
 	User::verifyLogin();
 
 	$user = new User();
 
 	$user->get((int) $iduser);
+
+	$_POST["inadmin"] = isset($_POST["inadmin"]) ? 1 : 0;
 
 	$user->setData($_POST);
 

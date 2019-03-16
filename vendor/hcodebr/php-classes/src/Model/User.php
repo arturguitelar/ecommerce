@@ -94,13 +94,17 @@ class User extends Model
     {
         $sql = new Sql();
 
-        return $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+        return $sql->select("
+            SELECT * FROM tb_users a 
+            INNER JOIN tb_persons b USING(idperson) 
+            ORDER BY b.desperson
+        ");
     }
 
     /**
      * Os dados são salvos no banco utilizando a procedure pre-criada chamada "sp_users_save"
      * 
-     * Ordem dos dados na procedure:
+     * Ordem dos parâmetros na procedure:
      * pdesperson VARCHAR(64), 
      * pdeslogin VARCHAR(64), 
      * pdespassword VARCHAR(256), 
@@ -112,14 +116,16 @@ class User extends Model
     {
         $sql = new Sql();
 
-        $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
-            ":desperson" => $this->getdesperson(),
-            ":deslogin" => $this->getdeslogin(),
-            ":despassword" => $this->getdespassword(),
-            ":desemail" => $this->getdesemail(),
-            ":nrphone" => $this->getnrphone(),
-            ":inadmin" => $this->getinadmin()
-        ));
+        $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", 
+            array(
+                ":desperson" => $this->getdesperson(),
+                ":deslogin" => $this->getdeslogin(),
+                ":despassword" => $this->getdespassword(),
+                ":desemail" => $this->getdesemail(),
+                ":nrphone" => $this->getnrphone(),
+                ":inadmin" => $this->getinadmin()
+            )
+        );
 
         $this->setData($results[0]);
     }
@@ -127,15 +133,20 @@ class User extends Model
     /** 
      * Pegando usuário no banco pelo id.
      * 
-     * @param mixed $iduser
+     * @param int $iduser
     */
     public function get($iduser)
     {
         $sql = new Sql();
 
-        $results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser", array(
-            ":iduser" => $iduser
-        ));
+        $results = $sql->select("
+                SELECT * FROM tb_users a 
+                INNER JOIN tb_persons b USING(idperson) 
+                WHERE a.iduser = :iduser
+            ", array(
+                ":iduser" => $iduser
+            )
+        );
 
         $this->setData($results[0]);
     }
