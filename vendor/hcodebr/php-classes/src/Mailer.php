@@ -6,12 +6,20 @@ use Rain\Tpl;
 
 class Mailer
 {
+    // Email, senha e nome do remetente utilizados para enviar o email para o usuário
     const USERNAME = "algumemail@mail.com";
     const PASSWORD = "algumasenhaaqui";
-    const NAME_FROM = "Hcode Store";
+    const NAME_FROM = "Nome do Remetente";
 
     private $mail;
 
+    /**
+     * @param string $toAddress
+     * @param string $toName
+     * @param string $subject
+     * @param string $tolName
+     * @param array $data
+     */
     public function __construct($toAddress, $toName, $subject, $tplName, $data = array())
     {
         /* Criando o template */
@@ -29,19 +37,18 @@ class Mailer
             $tpl->assign($key, $value);
         }
 
+        // true para não renderizar na tela e sim passar para a variável
         $html = $tpl->draw($tplName, true);
         
         /* Utilizando o PHPMailer */
+        // https://github.com/PHPMailer/PHPMailer
 
         $this->mail = new \PHPMailer;
 
         $this->mail->isSMTP();
-        //Enable SMTP debugging
-        // 0 = off (for production use)
-        // 1 = client messages
-        // 2 = client and server messages
+        
         $this->mail->SMTPDebug = 0;
-        //Set the hostname of the mail server
+        
         $this->mail->Host = 'smtp.gmail.com';
 
         $this->mail->SMTPOptions = array(
@@ -51,26 +58,25 @@ class Mailer
                 'allow_self_signed' => true
             )
         );
-        //Set the SMTP port number - 587 for authenticated TLS, a.k.a. RFC4409 SMTP submission
+
         $this->mail->Port = 587;
-        //Set the encryption system to use - ssl (deprecated) or tls
         $this->mail->SMTPSecure = 'tls';
-        //Whether to use SMTP authentication
         $this->mail->SMTPAuth = true;
-        //Username to use for SMTP authentication - use full email address for gmail
+
+        // use full email address for gmail
+        // por quem:
         $this->mail->Username = Mailer::USERNAME;
-        //Password to use for SMTP authentication
         $this->mail->Password = Mailer::PASSWORD;
-        //Set who the message is to be sent from
         $this->mail->setFrom(Mailer::USERNAME, Mailer::NAME_FROM);
-        //Set who the message is to be sent to
+
+        // para quem:
         $this->mail->addAddress($toAddress, $toName);
-        //Set the subject line
         $this->mail->Subject = $subject;
-        //Read an HTML message body from an external file, convert referenced images to embedded,
-        //convert HTML into a basic plain-text alternative body
+        
+        // o template será renderizado pelo RainTpl
         $this->mail->msgHTML($html);
-        //Replace the plain text body with one created manually
+        
+        // Replace the plain text body with one created manually
         $this->mail->AltBody = 'This is a plain-text message body';
     }
 

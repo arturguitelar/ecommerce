@@ -9,6 +9,13 @@ use Hcode\Mailer;
 class User extends Model
 {
     const SESSION = "User";
+
+    /**
+     * O instrutor indica que nunca se suba essa chave em um repositório público
+     * mas para os propósitos do exercício não há problemas.
+     * 
+     * Na chave é obrigatório 16 caracteres ou mais, de acordo com o tipo de encriptação.
+     */
     const SECRET = "_password_secret";
     const SECRET_IV = "_password_secret";
 
@@ -187,7 +194,6 @@ class User extends Model
         $sql->query("CALL sp_users_delete(:iduser)", array(
             ":iduser" => $this->getiduser()
         ));
-
     }
 
     /* Forgot Password */
@@ -197,7 +203,6 @@ class User extends Model
      * @param string $email
      * @return mixed $data
      */
-
     public static function getForgot($email)
     {
         $sql = new Sql();
@@ -207,7 +212,7 @@ class User extends Model
             FROM tb_persons a
             INNER JOIN tb_users b USING(idperson)
             WHERE a.desemail = :email
-        ", array( ":email" => $email));
+        ", array( ":email" => $email ));
 
         // verificando se o email existe ou não no banco
         if (count($results) === 0) {
@@ -227,15 +232,16 @@ class User extends Model
                 $dataRecovery = $resultsRecovery[0];
 
                 // gerando o código criptografado
+                // http://php.net/manual/pt_BR/function.openssl-encrypt.php
                 $code = base64_encode(
                     openssl_encrypt(
                         $dataRecovery["idrecovery"],
-                        'AES-128-CBC', User::SECRET,
-                        0, User::SECRET_IV
+                        "AES-128-CBC", User::SECRET,
+                        OPENSSL_RAW_DATA, User::SECRET_IV
                     )
                 );
 
-                // endereço que receberá o código
+                // endereço que receberá o código e será enviado por email
                 $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
 
                 // enviando por email via PHPMailer
@@ -263,10 +269,11 @@ class User extends Model
     public static function validForgotDecrypt($code)
     {
         // desencriptando a senha
+        // http://php.net/manual/pt_BR/function.openssl-decrypt.php
         $idrecovery = openssl_decrypt(
             base64_decode($code),
-            'AES-128-CBC', User::SECRET,
-            0, User::SECRET_IV
+            "AES-128-CBC", User::SECRET,
+            OPENSSL_RAW_DATA, User::SECRET_IV
         );
 
         $sql = new Sql();
@@ -275,7 +282,8 @@ class User extends Model
             SELECT * FROM tb_userspasswordsrecoveries a
             INNER JOIN tb_users b USING(iduser)
             INNER JOIN tb_persons c USING(idperson)
-            WHERE a.idrecovery = :idrecovery AND a.dtrecovery IS NULL
+            WHERE a.idrecovery = :idrecovery 
+            AND a.dtrecovery IS NULL
             AND DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW()
         ", array( ":idrecovery" => $idrecovery ));
 
@@ -299,7 +307,7 @@ class User extends Model
     }
 
     /**
-     * @param string password
+     * @param string $password
      */
     public function setPassword($password)
     {
