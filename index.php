@@ -224,7 +224,7 @@ $app->post("/admin/forgot/reset", function() {
 	$page->setTpl("forgot-reset-sucess");
 });
 
-/** Categories */
+/** Categories - Admin */
 $app->get("/admin/categories", function() {
 	User::verifyLogin();
 
@@ -298,6 +298,20 @@ $app->post("/admin/categories/:idcategory", function($idcategory) {
 
 	header("Location: /admin/categories");
 	exit;
+});
+
+/** Categories - Views FrontEnd */
+$app->get("/category/:idcategory", function($idcategory) {
+	$category = new Category();
+
+	$category->get((int) $idcategory);
+
+	$page = new Page();
+
+	$page->setTpl("category", [
+		"category" => $category->getValues(),
+		"products" => []
+	]);
 });
 
 $app->run();
