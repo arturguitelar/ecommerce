@@ -21,7 +21,7 @@ class Category extends Model
     }
 
     /** 
-     * Salvando a categoria criada.
+     * Salvando o registro criado.
     */
     public function save()
     {
@@ -40,7 +40,7 @@ class Category extends Model
     }
 
     /**
-     * Pegando id da categoria que será deletada do banco.
+     * Selecionando registro no banco.
      * 
      * @param int $idcategory
      */
