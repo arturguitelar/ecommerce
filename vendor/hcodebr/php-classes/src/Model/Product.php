@@ -87,4 +87,85 @@ class Product extends Model
         ));
     }
 
+    /**
+     * Adicionando uma coluna a mais para envio de foto.
+     * 
+     * @return $values
+     */
+    public function getValues()
+    {
+        $this->checkPhoto();
+        $values = parent::getValues();
+
+        return $values;
+    }
+
+    /**
+     * Checagem de foto.
+     * Caso a foto não exista, utiliza uma imagem padrão.
+     * 
+     * @return $url
+     */
+    public function checkPhoto()
+    {
+        $filepath = $_SERVER["DOCUMENT_ROOT"] . DIRECTORY_SEPARATOR . 
+            "res" . DIRECTORY_SEPARATOR . 
+            "site" . DIRECTORY_SEPARATOR . 
+            "img" . DIRECTORY_SEPARATOR . 
+            "products" .DIRECTORY_SEPARATOR;
+
+        $filename = $this->getidproduct() . ".jpg";
+        
+        if (file_exists($filepath . $filename)) {
+            $url = "/res/site/img/products/" . $filename;
+        } else {
+            $url = "/res/site/img/product.jpg";
+        }
+
+        return $this->setdesphoto($url);
+    }
+
+    /**
+     * Subindo uma foto para o server.
+     * 
+     * @param $_FILE["name"] $file
+     */
+    public function setPhoto($file)
+    {
+        // detectando a extensão do arquivo
+        $extension = explode(".", $file["name"]);
+        $extension = end($extension);
+
+        // utilizando funções da lib GD para mudar a extensão
+
+        switch ($extension) {
+            case 'jpg':
+            case 'jpeg':
+                $image = imagecreatefromjpeg($file["tmp_name"]); // nome temporáro do arquivo que está no servidor
+                break;
+
+            case 'gif':
+                $image = imagecreatefromgif($file["tmp_name"]); // nome temporáro do arquivo que está no servidor
+                break;
+
+            case 'png':
+                $image = imagecreatefrompng($file["tmp_name"]); // nome temporáro do arquivo que está no servidor
+                break;
+        }
+
+        // imagejpg( imagem, destino )
+        $filepath = $_SERVER["DOCUMENT_ROOT"] . DIRECTORY_SEPARATOR . 
+            "res" . DIRECTORY_SEPARATOR . 
+            "site" . DIRECTORY_SEPARATOR . 
+            "img" . DIRECTORY_SEPARATOR . 
+            "products" .DIRECTORY_SEPARATOR;
+
+        $filename = $this->getidproduct() . ".jpg";
+
+        imagejpeg($image, $filepath . $filename);
+
+        imagedestroy($image);
+
+        $this->checkPhoto();
+    }
 }
