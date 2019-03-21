@@ -20,6 +20,27 @@ class Product extends Model
         return $sql->select("SELECT * FROM tb_products ORDER BY desproduct");
     }
 
+    /**
+     * Checa a lista de produtos. 
+     * Retorna os objetos tratados do banco.
+     * 
+     * @param array $list
+     * @return arrayList $list
+     */
+    public static function checkList($list)
+    {
+        // &$row = o & significa que irá mudar a variável direto em memória
+        foreach ($list as &$row) {
+            $product = new Product();
+
+            $product->setData($row);
+
+            $row = $product->getValues();
+        }
+
+        return $list;
+    }
+
     /** 
      * Salvando o registro criado.
      *

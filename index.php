@@ -10,6 +10,7 @@ $app = new Slim();
 
 $app->config("debug", true);
 
+require_once("functions.php");
 require_once("routes/site.php");
 require_once("routes/admin.php");
 require_once("routes/admin-users.php");
