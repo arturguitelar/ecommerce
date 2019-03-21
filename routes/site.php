@@ -1,5 +1,6 @@
 <?php
 use Hcode\Page;
+use Hcode\Model\Category;
 
 /* home do site */
 $app->get("/", function() {
