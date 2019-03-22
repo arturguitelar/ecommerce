@@ -86,4 +86,43 @@ class Category extends Model
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR . "categories-menu.html", 
             implode("", $html));
     }
+
+    /**
+     * Traz produtos relacionados ou não-relacionados com a categoria de acordo com o boolean passado.
+     * true = relacionados
+     * false = não-relacionados
+     * 
+     * @param bool $related
+     * @return $sql
+     */
+    public function getProducts($related = true)
+    {
+        $sql = new Sql();
+
+        if ($related === true) {
+            return $sql->select("
+                SELECT * FROM tb_products WHERE idproduct IN(
+                    SELECT a.idproduct
+                    FROM tb_products a
+                    INNER JOIN tb_productscategories b ON a.idproduct = b.idproduct
+                    WHERE b.idcategory = :idcategory
+                );
+            ", array(
+                ":idcategory" => $this->getidcategory()
+                )
+            ); 
+        } else {
+            return $sql->select("
+                SELECT * FROM tb_products WHERE idproduct NOT IN(
+                    SELECT a.idproduct
+                    FROM tb_products a
+                    INNER JOIN tb_productscategories b ON a.idproduct = b.idproduct
+                    WHERE b.idcategory = :idcategory
+                );
+            ", array(
+                ":idcategory" => $this->getidcategory()
+                )
+            );
+        }
+    }
 }
