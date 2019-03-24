@@ -125,4 +125,34 @@ class Category extends Model
             );
         }
     }
+
+    /**
+     * Adiciona produto na categoria.
+     * 
+     * @param Hcode\Model\Product $product
+     */
+    public function addProduct(Product $product)
+    {
+        $sql = new Sql();
+
+        $sql->query("INSERT INTO tb_productscategories (idcategory, idproduct) VALUES (:idcategory, :idproduct)", array(
+            ":idcategory" => $this->getidcategory(),
+            ":idproduct" => $product->getidproduct()
+        ));
+    }
+
+    /**
+     * Remove produto da categoria.
+     * 
+     * @param Hcode\Model\Product $product
+     */
+    public function removeProduct(Product $product)
+    {
+        $sql = new Sql();
+
+        $sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AND idproduct = :idproduct", array(
+            ":idcategory" => $this->getidcategory(),
+            ":idproduct" => $product->getidproduct()
+        ));
+    }
 }
