@@ -17,14 +17,30 @@ $app->get("/", function() {
 
 /** Categories - Views FrontEnd */
 $app->get("/category/:idcategory", function($idcategory) {
+	// verificando se foi passada alguma página
+	$page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
+	
 	$category = new Category();
 
 	$category->get((int) $idcategory);
+
+	$pagination = $category->getProductsPage($page);
+
+	// percorre o total de páginas para enviar para a view
+	// cria um array com o link url e nr da pagina
+	$pages = [];
+	for ($i = 1; $i <= $pagination["pages"]; $i++) {
+		array_push($pages, [
+			"link" => "/category/".$category->getidcategory()."?page=".$i,
+			"page" => $i
+		]);
+	}
 
 	$page = new Page();
 
 	$page->setTpl("category", [
 		"category" => $category->getValues(),
-		"products" => Product::checkList($category->getProducts())
+		"products" => $pagination["data"],
+		"pages" => $pages
 	]);
 });
