@@ -19,6 +19,58 @@ class User extends Model
     const SECRET = "_password_secret";
     const SECRET_IV = "_password_secret";
 
+    /**
+     * Retorna o usuário da sessão.
+     * 
+     * @return User $user
+     */
+    public static function getFromSession()
+    {
+        $user = new User();
+
+        // se a sessão está definida...
+        if (isset($_SESSION[User::SESSION]) && (int) $_SESSION[User::SESSION]["iduser"] > 0) {
+            $user->setData($_SESSION[User::SESSION]);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Verifica se o usuário está logado na sessão.
+     * 
+     * Verifica se:
+     * 1 - a sessão não foi definida;
+     * 2 - a sessão está vazia ou perdeu o valor;
+     * 3 - se o id do usuário não é maior que zero;
+     * 4 - se está logado como administrador ou não.
+     * 
+     * @param bool $inAdmin
+     */
+    public static function checkLogin($inAdmin = true)
+    {
+        if (
+            !isset($_SESSION[User::SESSION]) ||
+            !$_SESSION[User::SESSION] ||
+            !(int) $_SESSION[User::SESSION]["iduser"] > 0
+            ) 
+        {
+            // usuário não está logado
+            return false;
+        } else {
+            // se for uma rota da administração o usuário precisa ser um administrador de sistema...
+            if ($inAdmin === true && (bool) $_SESSION[User::SESSION]["inadmin"] === true) {
+                return true;
+            } else if ($inAdmin === false){
+                // usuário está logado mas não é um administrador do sistema
+                return false;
+            } else {
+                // usuário não está logado
+                return false;
+            }
+        }
+    }
+
     /* Login Auth */
     /**
      * @param string $login User Login
@@ -60,24 +112,15 @@ class User extends Model
     }
 
     /**
-     * Verificação de sessão do usuário.
-     * 
-     * Verifica se:
-     * 1 - a sessão não foi definida;
-     * 2 - a sessão está vazia ou perdeu o valor;
-     * 3 - se o id do usuário não é maior que zero;
-     * 4 - se está logado como administrador ou não.
+     * Verificação de login do usuário.
      * 
      * Se não passar na verificação é redirecionado ára a tela de Login.
+     * 
+     * @param bool $inAdmin
      */
     public static function verifyLogin($inAdmin = true)
     {
-        if (
-            !isset($_SESSION[User::SESSION]) ||
-            !$_SESSION[User::SESSION] ||
-            !(int) $_SESSION[User::SESSION]["iduser"] > 0 ||
-            (bool) $_SESSION[User::SESSION]["inadmin"] !== $inAdmin
-        ) 
+        if (User::checkLogin($inAdmin)) 
         {
             header("Location: /admin/login");
             exit;
