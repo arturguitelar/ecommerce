@@ -11,6 +11,25 @@ class Cart extends Model
     /** Deve-se guardar os dados do carrinho em uma sessão. */
     const SESSION = "Cart";
 
+    const SESSION_ERROR = "CartError";
+
+    /**
+     * Sobreescrevendo o método getValues para adicionar mais valores sobre o carrinho.
+     * Chama método que faz update do calculo total.
+     * 
+     * @return array
+     */
+    public function getValues()
+    {
+        // Nota: como este é um método de sobreescrita, mesmo tendo sido adicionado depois
+        // achei melhor colocar no começo do script
+        
+        // já faz os cálculos necessários
+        $this->getCalculateTotals();
+
+        return Parent::getValues();
+    }
+
     /**
      * Verifica se é preciso inserir um novo carrinho, se é necessário pegar da sessão
      * caso o carrinho já exista ou se a sessão já foi perdida mas o session id ainda persiste.
@@ -104,7 +123,7 @@ class Cart extends Model
      * 
      * Utiliza o método de verificar as imagens.
      * 
-     * @return Sql $sql
+     * @return array $rowa
      */
     public function getProducts()
     {
@@ -127,6 +146,39 @@ class Cart extends Model
         );
 
         return Product::checkList($rows);
+    }
+
+    /**
+     * Traz:
+     * . soma dos valores dos produtos.
+     * . soma das medidas dos produtos.
+     * . soma do peso total dos produtos.
+     * . quantidade de produtos no carrinho.
+     * 
+     * @return array $results
+     */
+    public function getProductsTotals()
+    {
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT SUM(vlprice) AS vlprice, 
+            SUM(vlwidth) AS vlwidth, SUM(vlheight) AS vlheight, 
+            SUM(vllength) AS vllength, SUM(vlweight) AS vlweight,
+            COUNT(*) AS nrqtd
+            FROM tb_products a 
+            INNER JOIN tb_cartsproducts b
+            ON a.idproduct = b.idproduct
+            WHERE b.idcart = :idcart
+            AND dtremoved IS NULL
+        ", array(
+            ":idcart" => $this->getidcart()
+            )
+        );
+
+        if (count($results) > 0) return $results[0];
+
+        return [];
     }
 
     /**
@@ -155,6 +207,7 @@ class Cart extends Model
 
     /**
      * Adiciona produto ao carrinho.
+     * Chama método que faz update do calculo total.
      * 
      * @param Product $product
      */
@@ -166,11 +219,14 @@ class Cart extends Model
             ":idcart" => $this->getidcart(),
             ":idproduct" => $product->getidproduct()
         ));
+
+        $this->getCalculateTotals();
     }
 
     /**
      * Remove produto do carrinho.
      * Verifica se estão sendo removidos um ou todos os produtos do mesmo tipo.
+     * Chama método que faz update do calculo total.
      * 
      * @param Product $product
      * @param bool $all
@@ -205,5 +261,173 @@ class Cart extends Model
                 ":idproduct" => $product->getidproduct()
             ));
         }
+
+        $this->getCalculateTotals();
+    }
+
+    /**
+     * Cálculo de frete.
+     * 
+     * @param string $nrzipcode
+     * 
+     * @return object $result
+     */
+    public function setFreight($nrzipcode)
+    {
+        $nrzipcode = str_replace("-", "", $nrzipcode);
+
+        $totals = $this->getProductsTotals();
+
+        if ($totals["nrqtd"] > 0) {
+            /** Nota: Os dados da api dos Correios são retornados em xml */
+            // Nota2: Os dados estão no "Manual de Imprementação do Cálculo remoto de Preços e Prazos".pdf
+            
+            // Nota3: Um dos erros da api no exemplo sugere altura maior do que 2cm e comprimento maior que 16cm
+            // No meu caso, não recebi estes erros, mesmo assim resolvi fazer como no exemplo.
+            if ($totals["vlheight"] < 2) $totals["vlheight"] = 2;
+            if ($totals["vllength"] < 16) $totals["vllength"] = 16;
+
+            // montando a query string com todos os dados que serão passados para a url
+            $qs = http_build_query(
+                [
+                    "nCdEmpresa" => "",
+                    "sDsSenha" => "",
+                    "nCdServico" => "40010",
+                    "sCepOrigem" => "09853120", // cep da Hcode para teste
+                    "sCepDestino" => $nrzipcode,
+                    "nVlPeso" => $totals["vlweight"],
+                    "nCdFormato" => 1,
+                    "nVlComprimento" => $totals["vllength"],
+                    "nVlAltura" => $totals["vlheight"],
+                    "nVlLargura" => $totals["vlwidth"],
+                    "nVlDiametro" => 0,
+                    "sCdMaoPropria" => "S",
+                    "nVlValorDeclarado" => $totals["vlprice"],
+                    "sCdAvisoRecebimento" => "S",
+                ]
+            );
+
+            // buscando o xml da url da api
+            $xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
+
+            /**
+             * Para fins de teste.
+             * Utilizando o cep da Hcode => 09853120 como Origem.
+             * Dados retornados com o cep => 05266-020 (Parque Esperança - São Paulo) como destino.
+             * 
+             * Após o casting para array e json_decode:
+             * 
+             *  "Servicos": {
+             *      "cServico": {
+             *      "Codigo": "40010",
+             *      "Valor": "352,36",
+             *      "PrazoEntrega": "8",
+             *      "ValorMaoPropria": "6,80",
+             *      "ValorAvisoRecebimento": "5,75",
+             *      "ValorValorDeclarado": "166,41",
+             *      "EntregaDomiciliar": "S",
+             *      "EntregaSabado": "S",
+             *      "Erro": "011",
+             *      "MsgErro": "O CEP de destino est\u00e1 sujeito a condi\u00e7\u00f5es especiais de entrega  pela  ECT e ser\u00e1 realizada com o acr\u00e9scimo de at\u00e9 7 (sete) dias \u00fateis ao prazo regular.",
+             *      "ValorSemAdicionais": "94,40",
+             *      "obsFim": "O CEP de destino est\u00e1 sujeito a condi\u00e7\u00f5es especiais de entrega  pela  ECT e ser\u00e1 realizada com o acr\u00e9scimo de at\u00e9 7 (sete) dias \u00fateis ao prazo regular."
+             *      }
+             *  }
+             */
+            $result = $xml->Servicos->cServico; // neste caso, traz referência como objeto
+
+            // verificando erros e passando mensagens via sessão
+            if ($result->MsgErro != "") {
+                Cart::setMsgError($result->MsgErro);
+            } else {
+                Cart::clearMsgError();
+            }
+
+            // setando as informações no objeto e salvando no banco
+            $this->setnrdays($result->PrazoEntrega);
+            $this->setvlfreight(Cart::formatValueToDecimal($result->Valor));
+            $this->setdeszipcode($nrzipcode);
+
+            $this->save();
+
+            return $result;
+        } else {
+
+        }
+    }
+
+    /**
+     * Atualiza o frete.
+     */
+    public function updateFreight()
+    {
+        // necessário verificar se existe um cep
+        if ($this->getdeszipcode() != "")
+            $this->setFreight($this->getdeszipcode());
+    }
+
+    /**
+     * Cálculos totais de frete.
+     * Chama método que faz o update do frete.
+     */
+    public function getCalculateTotals()
+    {
+        $this->updateFreight();
+
+        $totals = $this->getProductsTotals();
+
+        // valor total dos produtos
+        $this->setvlsubtotal($totals["vlprice"]);
+
+        // valor total dos produtos + frete
+        $this->setvltotal($totals["vlprice"] + $this->getvlfreight());
+    }
+
+    /**
+     * Formata valores de preço para serem inseridos no banco.
+     * 
+     * @param mixed $value
+     * 
+     * @return float $value
+     */
+    public static function formatValueToDecimal($value) : float
+    {
+        $value = str_replace(".", "", $value);
+
+        return str_replace(",", ".", $value);
+    }
+    
+    /** MENSAGENS DE ERRO */
+    /**
+     * Passa mensagens de erro via session.
+     * 
+     * @param string $msg
+     */
+    public static function setMsgError($msg)
+    {
+        $_SESSION[Cart::SESSION_ERROR] = $msg;
+    }
+
+    /**
+     * Retorna mensagem de erro.
+     * Limpa a mensagem da sessão antes de retornar a mensagem.
+     * 
+     * @return string $msg 
+     */
+    public static function getMsgError()
+    {
+        $msg = (isset($_SESSION[Cart::SESSION_ERROR])) ? $_SESSION[Cart::SESSION_ERROR] : "";
+
+        Cart::clearMsgError();
+
+        return $msg;
+    }
+
+    /**
+     * Limpa a mensagem de erro da sessão atual.
+     */
+    public static function clearMsgError()
+    {
+        $_SESSION[Cart::SESSION_ERROR] = NULL;
     }
 }
