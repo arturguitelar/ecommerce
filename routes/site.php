@@ -67,5 +67,60 @@ $app->get("/cart", function() {
 	
 	$page = new Page();
 
-	$page->setTpl("cart");
+	$page->setTpl("cart", [
+		"cart" => $cart->getValues(),
+		"products" => $cart->getProducts()
+	]);
+});
+
+$app->get("/cart/:idproduct/add", function($idproduct) {
+	
+	$product = new Product();
+
+	$product->get((int) $idproduct);
+
+	// recupera o carrinho da sessão
+	$cart = Cart::getFromSession();
+
+	// resolve a questão do select de quantidade
+	$qtd = (isset($_GET['qtd'])) ? (int)$_GET['qtd'] : 1;
+
+	// adicionando produto no carrinho
+	for ($i = 0; $i < $qtd; $i++)
+		$cart->addProduct($product);
+
+	header("Location: /cart");
+	exit;
+});
+
+$app->get("/cart/:idproduct/minus", function($idproduct) {
+	
+	$product = new Product();
+
+	$product->get((int) $idproduct);
+
+	// recupera o carrinho da sessão
+	$cart = Cart::getFromSession();
+
+	// removendo UM produto no carrinho
+	$cart->removeProduct($product);
+
+	header("Location: /cart");
+	exit;
+});
+
+$app->get("/cart/:idproduct/remove", function($idproduct) {
+	
+	$product = new Product();
+
+	$product->get((int) $idproduct);
+
+	// recupera o carrinho da sessão
+	$cart = Cart::getFromSession();
+
+	// adicionando TODOS os produtos do mesmo tipo no carrinho
+	$cart->removeProduct($product, true);
+
+	header("Location: /cart");
+	exit;
 });
