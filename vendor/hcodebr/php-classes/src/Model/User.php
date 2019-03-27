@@ -284,10 +284,11 @@ class User extends Model
     /**
      * Verificando se o email está cadastrado no banco de dados.
      * 
-     * @param string $email
-     * @return mixed $data
+     * @param string $email Email
+     * @param bool $inadmin É um usuário admin?
+     * @return mixed $data Dados de recuperação.
      */
-    public static function getForgot($email)
+    public static function getForgot($email, $inadmin = true)
     {
         $sql = new Sql();
 
@@ -326,7 +327,11 @@ class User extends Model
                 );
 
                 // endereço que receberá o código e será enviado por email
-                $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+                if ($inadmin === true) {
+                    $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+                } else {
+                    $link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
+                }
 
                 // enviando por email via PHPMailer
                 $subject = "Redefinir senha da Hcode Store";

@@ -5,11 +5,13 @@ use Hcode\Model\User;
 /** 
  * Formatando os valores de moeda.
  * 
- * @param float $vlprice 
- * @return number_format
+ * @param $vlprice Valor a ser formatado
+ * @return float Valor formatado para 0000.00
  */
-function formatPrice(float $vlprice)
+function formatPrice($vlprice)
 {
+    if (!$vlprice > 0) $vlprice = 0;
+    
     return number_format($vlprice, 2, ",", ".");
 }
 
