@@ -417,7 +417,7 @@ class Cart extends Model
 
     /**
      * Retorna mensagem de erro.
-     * Limpa a mensagem da sessão antes de retornar a mensagem.
+     * Chama método que limpa a mensagem da sessão antes de retornar a mensagem.
      * 
      * @return string $msg 
      */
