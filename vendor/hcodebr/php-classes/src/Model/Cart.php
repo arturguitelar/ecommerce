@@ -282,8 +282,8 @@ class Cart extends Model
             /** Nota: Os dados da api dos Correios são retornados em xml */
             // Nota2: Os dados estão no "Manual de Imprementação do Cálculo remoto de Preços e Prazos".pdf
             
-            // Nota3: Um dos erros da api no exemplo sugere altura maior do que 2cm e comprimento maior que 16cm
-            // No meu caso, não recebi estes erros, mesmo assim resolvi fazer como no exemplo.
+            // Nota3: A api pede largura > 11cm, altura > 2cm, comprimento > 16 cm
+            if ($totals["vlwidth"] < 11) $totals["vlwidth"] = 11;
             if ($totals["vlheight"] < 2) $totals["vlheight"] = 2;
             if ($totals["vllength"] < 16) $totals["vllength"] = 16;
 
@@ -352,7 +352,12 @@ class Cart extends Model
 
             return $result;
         } else {
+            $this->setnrdays(0);
+            $this->setvlfreight(0);
+            $this->setdeszipcode(0);
 
+            $this->save();
+            return $this->getProductsTotals();
         }
     }
 
@@ -377,10 +382,12 @@ class Cart extends Model
         $totals = $this->getProductsTotals();
 
         // valor total dos produtos
-        $this->setvlsubtotal($totals["vlprice"]);
+        $vlprice = (isset($totals["vlprice"])) ? $totals["vlprice"] : 0;
+        $this->setvlsubtotal($vlprice);
 
         // valor total dos produtos + frete
-        $this->setvltotal($totals["vlprice"] + $this->getvlfreight());
+        $vltotal = $vlprice + $this->getvlfreight();
+        $this->setvltotal($vltotal);
     }
 
     /**
