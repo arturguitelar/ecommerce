@@ -113,9 +113,8 @@ class User extends Model
     }
 
     /**
-     * Verificação de login do usuário.
-     * 
-     * Se não passar na verificação é redirecionado ára a tela de Login.
+     * Verifica se o usuário é ou não admin.
+     * Se não passar na verificação é redirecionado para a tela de Login.
      * 
      * @param bool $inAdmin
      */
@@ -132,7 +131,28 @@ class User extends Model
         }
     }
 
-    // Lougout da sessão.
+    /**
+     * Verifica se o login já existe no banco de dados.
+     * 
+     * @param string $login Login Usuário
+     * 
+     * @return bool
+     * True ou False para o resultado da consulta no banco.
+     */
+    public static function checkLoginExist($login)
+    {
+        $sql = new Sql();
+
+        $results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", array(
+            ":deslogin" => $login
+        ));
+
+        return (count($results) > 0);
+    }
+
+    /** 
+     * Sai da sessão.
+     */ 
     public static function logout()
     {
         $_SESSION[User::SESSION] = null;
@@ -395,7 +415,7 @@ class User extends Model
     }
 
     /**
-     * Retorna mensagem de erro.
+     * Retorna mensagem de erro caso ela exista em ERROR.
      * Chama método que limpa a mensagem da sessão antes de retornar a mensagem.
      * 
      * @return string $msg 
@@ -411,10 +431,44 @@ class User extends Model
     }
 
     /**
-     * Limpa a mensagem de erro da sessão atual.
+     * Limpa a mensagem registrada na sessão atual.
      */
     public static function clearMsgError()
     {
         $_SESSION[User::ERROR] = NULL;
+    }
+
+    /** MÉTODOS DE ERRO PARA O FORM */
+    /**
+     * Registra mensagem de erro.
+     * 
+     * @param string $msg Mensagem de Erro.
+     */
+    public static function setErrorRegister($msg)
+    {
+        $_SESSION[User::ERROR_REGISTER] = $msg;
+    }
+
+    /**
+     * Retorna mensagem de erro caso ela exista em ERROR_REGISTER.
+     * Chama método que limpa a mensagem de ERROR_REGISTER antes de retornar a mensagem.
+     * 
+     * @return string $msg Mensagem de Erro.
+     */
+    public static function getErrorRegister()
+    {
+        $msg = (isset($_SESSION[User::ERROR_REGISTER]) && $_SESSION[User::ERROR_REGISTER]) ? $_SESSION[User::ERROR_REGISTER] : "";
+
+        User::clearErrorRegister();
+
+        return $msg;
+    }
+
+    /**
+     * Limpa mensagem registrada em ERROR_REGISTER.
+     */
+    public static function clearErrorRegister()
+    {
+        $_SESSION[User::ERROR_REGISTER] = NULL;
     }
 }
