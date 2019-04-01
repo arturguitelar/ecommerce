@@ -11,6 +11,7 @@ class User extends Model
     const SESSION = "User";
     const ERROR = "UserError";
     const ERROR_REGISTER = "UserErrorRegister";
+    const SUCCESS = "UserSuccess";
 
     /**
      * O instrutor indica que nunca se suba essa chave em um repositório público
@@ -34,6 +35,10 @@ class User extends Model
         if (isset($_SESSION[User::SESSION]) && (int) $_SESSION[User::SESSION]["iduser"] > 0) {
             $user->setData($_SESSION[User::SESSION]);
         }
+
+        // trazendo o campo "desperson"
+        $user->get($user->getiduser());
+        $user->getdesperson();
 
         return $user;
     }
@@ -441,6 +446,41 @@ class User extends Model
     public static function clearMsgError()
     {
         $_SESSION[User::ERROR] = NULL;
+    }
+
+     /** MENSAGENS DE SUCESSO */
+    /**
+     * Passa mensagens de sucesso via session.
+     * 
+     * @param string $msg
+     */
+    public static function setMsgSuccess($msg)
+    {
+        $_SESSION[User::SUCCESS] = $msg;
+    }
+
+    /**
+     * Retorna mensagem de sucesso caso ela exista em SUCCESS.
+     * Chama método que limpa a mensagem da sessão antes de retornar a mensagem.
+     * 
+     * @return string $msg 
+     */
+    public static function getMsgSuccess()
+    {
+        // verifica se o sucesso estiver definido e se não estiver vazio
+        $msg = (isset($_SESSION[User::SUCCESS]) && $_SESSION[User::SUCCESS]) ? $_SESSION[User::SUCCESS] : "";
+
+        User::clearMsgError();
+
+        return $msg;
+    }
+
+    /**
+     * Limpa a mensagem registrada na sessão atual.
+     */
+    public static function clearMsgSuccess()
+    {
+        $_SESSION[User::SUCCESS] = NULL;
     }
 
     /** MÉTODOS DE ERRO PARA O FORM */

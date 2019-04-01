@@ -34,7 +34,6 @@ function checkLogin($inAdmin = true)
 function getUserName()
 {
     $user = User::getFromSession();
-    $user->get($user->getiduser());
 
     return $user->getdesperson();
 }
