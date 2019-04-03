@@ -111,7 +111,7 @@ class Cart extends Model
         if (count($results) > 0) $this->setData($results[0]);
     }
 
-    /** CRUD básico co carrinho */
+    /** CRUD básico do carrinho */
 
     /**
      * Lista os produtos dentro do carrinho.
@@ -123,7 +123,7 @@ class Cart extends Model
      * 
      * Utiliza o método de verificar as imagens.
      * 
-     * @return array $rowa
+     * @return array $row
      */
     public function getProducts()
     {

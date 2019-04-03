@@ -60,9 +60,9 @@ class Model
     }
 
     /**
-     * Retorna um array com os dados do usuário.
+     * Retorna um array com valores de registro.
      * 
-     * @return array $this->values
+     * @return array $values
      */
     public function getValues()
     {
