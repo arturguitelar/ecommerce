@@ -1,6 +1,8 @@
 <?php
 use Hcode\Model\User;
 use Hcode\Page;
+use Hcode\Model\Order;
+use Hcode\Model\Cart;
 
 /** User Profile */
 $app->get("/profile", function() {
@@ -63,4 +65,40 @@ $app->post("/profile", function() {
 
 	header("Location: /profile");
 	exit;
+});
+
+/* Profile - Pedidos */
+$app->get("/profile/orders", function() {
+    User::verifyLogin(false);
+
+    $user = User::getFromSession();
+
+    $page = new Page();
+
+    $page->setTpl("profile-orders", [
+        'orders' => $user->getOrders()
+    ]);
+});
+
+/* Detalhes do pedido */
+$app->get("/profile/orders/:idorder", function($idorder) {
+    User::verifyLogin(false);
+
+    $order = new Order();
+
+    $order->get((int) $idorder);
+
+    $cart = new Cart();
+
+	$cart->get((int) $order->getidcart());
+	
+	$cart->getCalculateTotals();
+
+    $page = new Page();
+
+    $page->setTpl("profile-orders-detail", [
+		'order' => $order->getValues(),
+		'cart' => $cart->getValues(),
+		'products' => $cart->getProducts()
+    ]);
 });

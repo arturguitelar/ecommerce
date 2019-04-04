@@ -194,8 +194,7 @@ $app->post("/checkout", function() {
 	$cart = Cart::getFromSession();
 
 	// valor total de produtos do carrinho
-	// $totals = $cart->getCalculateTotals();
-	$totals = $cart->getValues();
+	$cart->getCalculateTotals();
 
 	$order = new Order();
 
@@ -204,8 +203,7 @@ $app->post("/checkout", function() {
 		'idaddress' => $address->getidaddress(),
 		'iduser' => $user->getiduser(),
 		'idstatus' => OrderStatus::EM_ABERTO,
-		'vltotal' => $totals['vltotal']
-		// 'vltotal' => $totals['vlprice'] + $cart->getvlfreight()
+		'vltotal' => $cart->getvltotal()
 		]);
 
 	$order->save();
