@@ -1,6 +1,7 @@
 <?php
 
 use Hcode\Model\User;
+use Hcode\Model\Cart;
 
 /** 
  * Formatando os valores de moeda.
@@ -36,4 +37,32 @@ function getUserName()
     $user = User::getFromSession();
 
     return $user->getdesperson();
+}
+
+/**
+ * Retorna quantidade de produtos no carrinho.
+ * 
+ * @return string
+ */
+function getCartNrQtd()
+{
+    $cart = Cart::getFromSession();
+
+    $totals = $cart->getProductsTotals();
+
+    return $totals['nrqtd'];
+}
+
+/**
+ * Retorna o valor total dos produtos no carrinho sem o frete.
+ * 
+ * @return string
+ */
+function getCarVlSubtotal()
+{
+    $cart = Cart::getFromSession();
+
+    $totals = $cart->getProductsTotals();
+
+    return formatPrice($totals['vlprice']);
 }
