@@ -4,10 +4,10 @@ use Hcode\Model\User;
 use Hcode\Model\Cart;
 
 /** 
- * Formatando os valores de moeda.
+ * Formata os valores de moeda.
  * 
- * @param $vlprice Valor a ser formatado
- * @return float Valor formatado para 0000.00
+ * @param $vlprice Valor a ser formatado.
+ * @return float Valor formatado para 0000.00.
  */
 function formatPrice($vlprice)
 {
@@ -17,10 +17,21 @@ function formatPrice($vlprice)
 }
 
 /**
+ * Formata a data.
+ * 
+ * @param string $date Data a ser dormatada.
+ * @return date Data formatada.
+ */
+function formatDate($date)
+{
+    return date('d/m/Y', strtotime($date));
+}
+
+/**
  * Checa se o usuário está logado e se é um admin.
  * 
  * @param bool $inAdmin
- * @return bool
+ * @return bool Está como admin? True / False.
  */
 function checkLogin($inAdmin = true)
 {
@@ -30,7 +41,7 @@ function checkLogin($inAdmin = true)
 /**
  * Retorna o nome do usuário atual da sessão.
  * 
- * @return string
+ * @return string Nome do usuário.
  */
 function getUserName()
 {
@@ -42,7 +53,7 @@ function getUserName()
 /**
  * Retorna quantidade de produtos no carrinho.
  * 
- * @return string
+ * @return string Total de produtos no carrinho.
  */
 function getCartNrQtd()
 {
@@ -56,7 +67,7 @@ function getCartNrQtd()
 /**
  * Retorna o valor total dos produtos no carrinho sem o frete.
  * 
- * @return string
+ * @return string Total de valores dos produtos no carrinho.
  */
 function getCarVlSubtotal()
 {

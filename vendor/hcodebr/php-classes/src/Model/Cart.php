@@ -123,7 +123,7 @@ class Cart extends Model
      * 
      * Utiliza o método de verificar as imagens.
      * 
-     * @return array $row
+     * @return array Lista de produtos agrupados.
      */
     public function getProducts()
     {
@@ -155,7 +155,7 @@ class Cart extends Model
      * . soma do peso total dos produtos.
      * . quantidade de produtos no carrinho.
      * 
-     * @return array $results
+     * @return array Valor total, medida, peso e quantidade dos produtos.
      */
     public function getProductsTotals()
     {

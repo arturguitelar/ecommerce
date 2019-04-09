@@ -2,6 +2,7 @@
 namespace Hcode\Model;
 
 use Hcode\Model;
+use Hcode\DB\Sql;
 
 class OrderStatus extends Model 
 {
@@ -10,4 +11,16 @@ class OrderStatus extends Model
     const AGUARDANDO_PAGAMENTO = 2;
     const PAGO = 3;
     const ENTREGUE = 4;
+
+    /**
+     * Lista todos os status.
+     * 
+     * @return array Lista de todos os status cadastrados.
+     */
+    public static function listAll()
+    {
+        $sql = new Sql();
+
+        return $sql->select("SELECT * FROM tb_ordersstatus ORDER BY desstatus");
+    }
 }

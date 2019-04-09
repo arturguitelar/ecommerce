@@ -3,9 +3,12 @@ namespace Hcode\Model;
 
 use Hcode\Model;
 use Hcode\DB\Sql;
+use Hcode\Model\Cart;
 
 class Order extends Model 
 {
+    const ERROR = "OrderError";
+    const SUCCESS = "OrderSuccess";
     /**
      * Salva os dados utilizando a procedure "sp_orders_save()".
      * 
@@ -38,7 +41,7 @@ class Order extends Model
     /**
      * Traz um registro de pedido.
      * 
-     * @param int $idorder ID do Pedido
+     * @param int ID do Pedido
      */
     public function get($idorder)
     {
@@ -55,5 +58,120 @@ class Order extends Model
         ", array( ':idorder' => $idorder ));
 
         if (count($results) > 0) $this->setData($results[0]);
+    }
+
+    /**
+     * Lista todos os registros.
+     * 
+     * @return array Lista de Pedidos.
+     */
+    public static function listAll()
+    {
+        $sql = new Sql();
+
+        return $sql->select("
+            SELECT * FROM tb_orders a
+            INNER JOIN tb_ordersstatus b USING(idstatus)
+            INNER JOIN tb_carts c USING(idcart)
+            INNER JOIN tb_users d ON d.iduser = a.iduser
+            INNER JOIN tb_addresses e USING(idaddress)
+            INNER JOIN tb_persons f ON f.idperson = d.idperson
+            ORDER BY a.dtregister DESC
+        ");
+    }
+
+    /**
+     * Deleta um registro.
+     */
+    public function delete()
+    {
+        $sql = new Sql();
+
+        $sql->query("DELETE FROM tb_orders WHERE idorder = :idorder", array(
+            ':idorder' => $this->getidorder()
+        ));
+    }
+
+    /**
+     * Lista o carrinho que pertence a este pedido.
+     * 
+     * @return Cart Retorna um carrinho.
+     */
+    public function getCart() : Cart
+    {
+        $cart = new Cart();
+
+        $cart->get((int) $this->getidcart());
+
+        return $cart;
+    }
+
+    /** MENSAGENS DE ERRO */
+    /**
+     * Passa mensagens de erro via session.
+     * 
+     * @param string $msg Mensagem de erro.
+     */
+    public static function setMsgError($msg)
+    {
+        $_SESSION[Order::ERROR] = $msg;
+    }
+
+    /**
+     * Retorna mensagem de erro.
+     * Chama método que limpa a mensagem da sessão antes de retornar a mensagem.
+     * 
+     * @return string Mensagem de erro. 
+     */
+    public static function getMsgError()
+    {
+        $msg = (isset($_SESSION[Order::ERROR])) ? $_SESSION[Order::ERROR] : "";
+
+        Order::clearMsgError();
+
+        return $msg;
+    }
+
+    /**
+     * Limpa a mensagem de erro da sessão atual.
+     */
+    public static function clearMsgError()
+    {
+        $_SESSION[Order::ERROR] = NULL;
+    }
+
+    /** MENSAGENS DE SUCESSO */
+    /**
+     * Passa mensagens de sucesso via session.
+     * 
+     * @param string $msg Mensagem de sucesso.
+     */
+    public static function setMsgSuccess($msg)
+    {
+        $_SESSION[Order::SUCCESS] = $msg;
+    }
+
+    /**
+     * Retorna mensagem de sucesso caso ela exista.
+     * Chama método que limpa a mensagem da sessão antes de retornar a mensagem.
+     * 
+     * @return string $msg Mensagem de sucesso.
+     */
+    public static function getMsgSuccess()
+    {
+        // verifica se o sucesso estiver definido e se não estiver vazio
+        $msg = (isset($_SESSION[Order::SUCCESS]) && $_SESSION[Order::SUCCESS]) ? $_SESSION[Order::SUCCESS] : "";
+
+        Order::clearMsgSuccess();
+
+        return $msg;
+    }
+
+    /**
+     * Limpa a mensagem registrada na sessão atual.
+     */
+    public static function clearMsgSuccess()
+    {
+        $_SESSION[Order::SUCCESS] = NULL;
     }
 }

@@ -413,6 +413,28 @@ class User extends Model
         ));
     }
 
+    /**
+     * Busca os pedidos pendentes.
+     * 
+     * @return array $results Lista de resultados.
+     */
+    public function getOrders()
+    {
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT * FROM tb_orders a
+            INNER JOIN tb_ordersstatus b USING(idstatus)
+            INNER JOIN tb_carts c USING(idcart)
+            INNER JOIN tb_users d ON d.iduser = a.iduser
+            INNER JOIN tb_addresses e USING(idaddress)
+            INNER JOIN tb_persons f ON f.idperson = d.idperson
+            WHERE a.iduser = :iduser
+        ", array( ':iduser' => $this->getiduser() ));
+
+        return $results;
+    }
+
     /** MENSAGENS DE ERRO */
     /**
      * Passa mensagens de erro via session.
@@ -470,7 +492,7 @@ class User extends Model
         // verifica se o sucesso estiver definido e se não estiver vazio
         $msg = (isset($_SESSION[User::SUCCESS]) && $_SESSION[User::SUCCESS]) ? $_SESSION[User::SUCCESS] : "";
 
-        User::clearMsgError();
+        User::clearMsgSuccess();
 
         return $msg;
     }
@@ -515,27 +537,5 @@ class User extends Model
     public static function clearErrorRegister()
     {
         $_SESSION[User::ERROR_REGISTER] = NULL;
-    }
-
-    /**
-     * Busca os pedidos pendentes.
-     * 
-     * @return array $results Resultado da busca.
-     */
-    public function getOrders()
-    {
-        $sql = new Sql();
-
-        $results = $sql->select("
-            SELECT * FROM tb_orders a
-            INNER JOIN tb_ordersstatus b USING(idstatus)
-            INNER JOIN tb_carts c USING(idcart)
-            INNER JOIN tb_users d ON d.iduser = a.iduser
-            INNER JOIN tb_addresses e USING(idaddress)
-            INNER JOIN tb_persons f ON f.idperson = d.idperson
-            WHERE a.iduser = :iduser
-        ", array( ':iduser' => $this->getiduser() ));
-
-        return $results;
     }
 }
