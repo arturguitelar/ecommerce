@@ -40,9 +40,9 @@ $app->get("/admin/users", function() {
 	// Lista os usuários do banco com paginação.
 	// Leva em consideração se o usuário digitou algo na caixa de busca.
 	if ($search != '') {
-		$pagination = User::getPageSearch($search, $page, 2);
+		$pagination = User::getPageSearch($search, $page, 10);
 	} else {
-		$pagination =  User::getPage($page, 2);
+		$pagination =  User::getPage($page, 10);
 	}
 
 	// todas as páginas
