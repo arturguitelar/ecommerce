@@ -30,13 +30,41 @@ $app->get("/admin/users/:iduser/delete", function($iduser) {
 $app->get("/admin/users", function() {
 	User::verifyLogin();
 
-	// lista os usuários do banco...
-	$users =  User::listAll();
+	// busca de usuários
+	$search = (isset($_GET['search'])) ? $_GET['search'] : "";
+	
+	// página atual
+	$page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+
+	// filtro da query
+	// Lista os usuários do banco com paginação.
+	// Leva em consideração se o usuário digitou algo na caixa de busca.
+	if ($search != '') {
+		$pagination = User::getPageSearch($search, $page, 2);
+	} else {
+		$pagination =  User::getPage($page, 2);
+	}
+
+	// todas as páginas
+	$pages = [];
+	for ($i = 0; $i < $pagination['pages']; $i++) {
+		array_push($pages, [
+			'href' => '/admin/users?'.http_build_query([
+				'page' => $i + 1,
+				'search' => $search
+			]),
+			'text' => $i + 1
+		]);
+	}
 	
 	$page = new PageAdmin();
 	
 	// ...então o array de usuários é passado para o template
-	$page->setTpl("users", array( "users" => $users ));
+	$page->setTpl("users", array(
+		"users" => $pagination['data'],
+		"search" => $search,
+		"pages" => $pages
+	));
 });
 
 /* Users - create */

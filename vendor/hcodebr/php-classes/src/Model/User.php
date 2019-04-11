@@ -435,6 +435,72 @@ class User extends Model
         return $results;
     }
 
+    /**
+     * Traz todos os registros com paginação;
+     * 
+     * @param int $page Página Inicial.
+     * @param int $itensPerPage Quantos itens por página.
+     * 
+     * @return array Resultados por página.
+     */
+    public static function getPage($page = 1, $itensPerPage = 10)
+    {
+        $start = ($page - 1) * $itensPerPage;
+
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT SQL_CALC_FOUND_ROWS *
+            FROM tb_users a
+            INNER JOIN tb_persons b USING(idperson)
+            ORDER BY b.desperson
+            LIMIT $start, $itensPerPage
+        ");
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+        return [
+            "data" => $results,
+            "total" => (int)$resultTotal[0]["nrtotal"],
+            "pages" => ceil($resultTotal[0]["nrtotal"] / $itensPerPage) // ceil arredonda o valor pra cima
+        ];
+    }
+
+    /**
+     * Traz os registros da busca com paginação;
+     * 
+     * @param string $search Busca.
+     * @param int $page Página Inicial.
+     * @param int $itensPerPage Quantos itens por página.
+     * 
+     * @return array Resultados por página.
+     */
+    public static function getPageSearch($search, $page = 1, $itensPerPage = 10)
+    {
+        $start = ($page - 1) * $itensPerPage;
+
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT SQL_CALC_FOUND_ROWS *
+            FROM tb_users a
+            INNER JOIN tb_persons b USING(idperson)
+            WHERE b.desperson LIKE :search OR b.desemail = :search OR a.deslogin LIKE :search
+            ORDER BY b.desperson
+            LIMIT $start, $itensPerPage
+        ", array(
+            ':search' => '%'.$search.'%'
+        ));
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+        return [
+            "data" => $results,
+            "total" => (int)$resultTotal[0]["nrtotal"],
+            "pages" => ceil($resultTotal[0]["nrtotal"] / $itensPerPage) // ceil arredonda o valor pra cima
+        ];
+    }
+
     /** MENSAGENS DE ERRO */
     /**
      * Passa mensagens de erro via session.
