@@ -8,12 +8,39 @@ use Hcode\Model\Product;
 $app->get("/admin/products", function() {
 	User::verifyLogin();
 
-	$products = Product::listAll();
+	// busca de produtos
+	$search = (isset($_GET['search'])) ? $_GET['search'] : "";
+	
+	// página atual
+	$page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+
+	// filtro da query
+	// Lista os produtos do banco com paginação.
+	// Leva em consideração se o usuário digitou algo na caixa de busca.
+	if ($search != '') {
+		$pagination = Product::getPageSearch($search, $page, 10);
+	} else {
+		$pagination =  Product::getPage($page, 10);
+	}
+
+	// todas as páginas
+	$pages = [];
+	for ($i = 0; $i < $pagination['pages']; $i++) {
+		array_push($pages, [
+			'href' => '/admin/products?'.http_build_query([
+				'page' => $i + 1,
+				'search' => $search
+			]),
+			'text' => $i + 1
+		]);
+	}
 
 	$page = new PageAdmin();
 
 	$page->setTpl("products", [
-		"products" => $products
+		"products" => $pagination['data'],
+		"search" => $search,
+		"pages" => $pages
 	]);
 });
 
