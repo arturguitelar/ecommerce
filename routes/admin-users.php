@@ -2,6 +2,60 @@
 use Hcode\Model\User;
 use Hcode\PageAdmin;
 
+/* Users - password */
+$app->get("/admin/users/:iduser/password", function($iduser) {
+	User::verifyLogin();
+
+	$user = new User();
+
+	$user->get((int) $iduser);
+
+	$page = new PageAdmin();
+
+	$page->setTpl("users-password", array(
+		"user" => $user->getValues(),
+		"msgSuccess" => User::getMsgSuccess(),
+		"msgError" => User::getMsgError()
+	));
+});
+
+$app->post("/admin/users/:iduser/password", function($iduser) {
+	User::verifyLogin();
+
+	// validações de envio
+	if (!isset($_POST['despassword']) || $_POST['despassword'] === '') {
+		User::setMsgError("Preencha a nova senha.");
+
+		header("Location: /admin/users/$iduser/password");
+		exit;
+	}
+
+	if (!isset($_POST['despassword-confirm']) || $_POST['despassword-confirm'] === '') {
+		User::setMsgError("Preencha a confirmação da nova senha.");
+
+		header("Location: /admin/users/$iduser/password");
+		exit;
+	}
+
+	if ($_POST['despassword'] !== $_POST['despassword-confirm']) {
+		User::setMsgError("Confirme corretamente as senhas.");
+
+		header("Location: /admin/users/$iduser/password");
+		exit;
+	}
+
+	$user = new User();
+
+	$user->get((int) $iduser);
+
+	$user->setPassword(User::getPasswordHash($_POST['despassword']));
+
+	User::setMsgSuccess("Senha alterada com sucesso.");
+
+	header("Location: /admin/users/$iduser/password");
+	exit;
+});
+
 /* Users - delete */
 /**  
  * Nota 1: O Slim não "entende" o método delete de forma tradicional,
