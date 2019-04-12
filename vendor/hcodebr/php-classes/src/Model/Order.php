@@ -106,6 +106,81 @@ class Order extends Model
         return $cart;
     }
 
+    /**
+     * Traz todos os registros com paginação;
+     * 
+     * @param int $page Página Inicial.
+     * @param int $itensPerPage Quantos itens por página.
+     * 
+     * @return array Resultados por página.
+     */
+    public static function getPage($page = 1, $itensPerPage = 10)
+    {
+        $start = ($page - 1) * $itensPerPage;
+
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT SQL_CALC_FOUND_ROWS *
+            FROM tb_orders a
+            INNER JOIN tb_ordersstatus b USING(idstatus)
+            INNER JOIN tb_carts c USING(idcart)
+            INNER JOIN tb_users d ON d.iduser = a.iduser
+            INNER JOIN tb_addresses e USING(idaddress)
+            INNER JOIN tb_persons f ON f.idperson = d.idperson
+            ORDER BY a.dtregister DESC
+            LIMIT $start, $itensPerPage
+        ");
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+        return [
+            "data" => $results,
+            "total" => (int)$resultTotal[0]["nrtotal"],
+            "pages" => ceil($resultTotal[0]["nrtotal"] / $itensPerPage) // ceil arredonda o valor pra cima
+        ];
+    }
+
+    /**
+     * Traz os registros da busca com paginação;
+     * 
+     * @param string $search Busca.
+     * @param int $page Página Inicial.
+     * @param int $itensPerPage Quantos itens por página.
+     * 
+     * @return array Resultados por página.
+     */
+    public static function getPageSearch($search, $page = 1, $itensPerPage = 10)
+    {
+        $start = ($page - 1) * $itensPerPage;
+
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT SQL_CALC_FOUND_ROWS *
+            FROM tb_orders a
+            INNER JOIN tb_ordersstatus b USING(idstatus)
+            INNER JOIN tb_carts c USING(idcart)
+            INNER JOIN tb_users d ON d.iduser = a.iduser
+            INNER JOIN tb_addresses e USING(idaddress)
+            INNER JOIN tb_persons f ON f.idperson = d.idperson
+            WHERE a.idorder = :id OR f.desperson LIKE :search
+            ORDER BY a.dtregister DESC
+            LIMIT $start, $itensPerPage
+        ", array(
+            ':id' => $search,
+            ':search' => '%'.$search.'%'
+        ));
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+        return [
+            "data" => $results,
+            "total" => (int)$resultTotal[0]["nrtotal"],
+            "pages" => ceil($resultTotal[0]["nrtotal"] / $itensPerPage) // ceil arredonda o valor pra cima
+        ];
+    }
+
     /** MENSAGENS DE ERRO */
     /**
      * Passa mensagens de erro via session.
