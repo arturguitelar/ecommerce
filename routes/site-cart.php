@@ -91,24 +91,11 @@ $app->get("/checkout", function() {
 	User::verifyLogin(false);
 
 	$address = new Address();
+
 	$cart = Cart::getFromSession();
 
 	if (!isset($_GET['zipcode'])) {
-		if ($cart->getdeszipcode() && $cart->getdeszipcode() != '')
-			$_GET['zipcode'] = $cart->getdeszipcode();
-	}
-	
-	// caso não tenha cep no carrinho é preciso zerar os campos
-	if (!$cart->getdeszipcode() || $cart->getdeszipcode() == '') {
-		$address->setdesaddress('');
-		$address->setdescomplement('');
-		$address->setdesdistrict('');
-		$address->setdescity('');
-		$address->setdesstate('');
-		$address->setdescountry('');
-		$address->setdeszipcode('');
-
-		Address::setMsgError("É necessário ter um CEP válido.");
+		$_GET['zipcode'] = $cart->getdeszipcode();
 	}
 
 	if (isset($_GET['zipcode'])) {
@@ -122,6 +109,16 @@ $app->get("/checkout", function() {
 		// força a calcular o total porque pode ter mudado o frete
 		$cart->getCalculateTotals();
 	}
+
+	// zerando campos caso falte alguma informação
+	if (!$address->getdesaddress()) $address->setdesaddress('');
+	if (!$address->getdesnumber()) $address->setdesnumber('');
+	if (!$address->getdescomplement()) $address->setdescomplement('');
+	if (!$address->getdesdistrict()) $address->setdesdistrict('');
+	if (!$address->getdescity()) $address->setdescity('');
+	if (!$address->getdesstate()) $address->setdesstate('');
+	if (!$address->getdescountry()) $address->setdescountry('');
+	if (!$address->getdeszipcode()) $address->setdeszipcode('');
 
 	$page = new Page();
 
@@ -146,6 +143,13 @@ $app->post("/checkout", function() {
 
 	if (!isset($_POST['desaddress']) || $_POST['desaddress'] === '') {
 		Address::setMsgError("Informe o endereço.");
+
+		header('Location: /checkout');
+		exit;
+	}
+
+	if (!isset($_POST['desnumber']) || $_POST['desnumber'] === '') {
+		Address::setMsgError("Informe o número.");
 
 		header('Location: /checkout');
 		exit;
@@ -256,7 +260,7 @@ $app->get("/boleto/:idorder", function($idorder) {
 
 	// DADOS DO SEU CLIENTE
 	$dadosboleto["sacado"] = $order->getdesperson();
-	$dadosboleto["endereco1"] = $order->desaddress() . " " . $order->getdesdistrict();
+	$dadosboleto["endereco1"] = $order->getdesaddress() . " Nº " . $order->getdesnumber() . " - " . $order->getdesdistrict();
 	$dadosboleto["endereco2"] = $order->getdescity() . " - "  . $order->getdesstate() . " / " . $order->getdescountry() . "  - CEP: " . $order->getdeszipcode();
 
 	// INFORMACOES PARA O CLIENTE
