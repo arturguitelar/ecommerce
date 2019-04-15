@@ -212,10 +212,37 @@ $app->post("/checkout", function() {
 
 	$order->save();
 
-	header("Location: /order/".$order->getidorder());
+	// antes da integração com pagseguro
+	// header("Location: /order/".$order->getidorder());
+
+	// depois da integração com pagseguro
+	header("Location: /order/".$order->getidorder()."/pagseguro");
 	exit;
 });
 
+// rota de integração com o PagSeguro
+$app->get("/order/:idorder/pagseguro", function($idorder) {
+	User::verifyLogin(false);
+
+	$order = new Order();
+
+	$order->get((int) $idorder);
+
+	$cart = $order->getCart();
+
+	$page = new Page();
+
+	$page->setTpl("payment-pagseguro", [
+		'order' => $order->getValues(),
+		'cart' => $cart->getValues(),
+		'products' => $cart->getProducts(),
+		/* No formulário o ddd é separado do número do telefone. */
+		'phone' => [
+			'areaCode' => substr($order->getnrphone(), 0, 2), // DDD
+			'number' => substr($order->getnrphone(), 2, strlen($order->getnrphone())) // phone number 
+		]
+	]);
+});
 
 // pagamento
 $app->get("/order/:idorder", function($idorder) {
