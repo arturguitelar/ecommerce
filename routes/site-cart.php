@@ -216,7 +216,18 @@ $app->post("/checkout", function() {
 	// header("Location: /order/".$order->getidorder());
 
 	// depois da integração com pagseguro
-	header("Location: /order/".$order->getidorder()."/pagseguro");
+	// header("Location: /order/".$order->getidorder()."/pagseguro");
+
+	// depois da integração com o paypal
+	switch ((int) $_POST['payment-method']) {
+		case 1:
+			header("Location: /order/".$order->getidorder()."/pagseguro");
+			break;
+		
+		case 2:
+			header("Location: /order/".$order->getidorder()."/paypal");
+			break;
+	}
 	exit;
 });
 
@@ -230,7 +241,10 @@ $app->get("/order/:idorder/pagseguro", function($idorder) {
 
 	$cart = $order->getCart();
 
-	$page = new Page();
+	$page = new Page([
+		'header' => false,
+		'footer' => false
+	]);
 
 	$page->setTpl("payment-pagseguro", [
 		'order' => $order->getValues(),
@@ -241,6 +255,28 @@ $app->get("/order/:idorder/pagseguro", function($idorder) {
 			'areaCode' => substr($order->getnrphone(), 0, 2), // DDD
 			'number' => substr($order->getnrphone(), 2, strlen($order->getnrphone())) // phone number 
 		]
+	]);
+});
+
+// rota de integração com o PayPal
+$app->get("/order/:idorder/paypal", function($idorder) {
+	User::verifyLogin(false);
+
+	$order = new Order();
+
+	$order->get((int) $idorder);
+
+	$cart = $order->getCart();
+
+	$page = new Page([
+		'header' => false,
+		'footer' => false
+	]);
+
+	$page->setTpl("payment-paypal", [
+		'order' => $order->getValues(),
+		'cart' => $cart->getValues(),
+		'products' => $cart->getProducts()
 	]);
 });
 
