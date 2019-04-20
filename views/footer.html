@@ -2,48 +2,39 @@
     <div class="zigzag-bottom"></div>
     <div class="container">
         <div class="row">
-            <div class="col-md-3 col-sm-6">
+            <div class="col-md-4 col-sm-6">
                 <div class="footer-about-us">
                     <h2>Hcode Store</h2>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Perferendis sunt id doloribus vero quam laborum quas alias dolores blanditiis iusto consequatur, modi aliquid eveniet eligendi iure eaque ipsam iste, pariatur omnis sint! Suscipit, debitis, quisquam. Laborum commodi veritatis magni at?</p>
+                    <p>Projeto desenvolvido do zero no <a href="https://www.udemy.com/curso-completo-de-php-7/" target="_blank" rel="noopener noreferrer">Curso de PHP 7</a> disponível na plataforma da <a href="http://www.udemy.com/" target="_blank" rel="noopener noreferrer">Udemy</a> e no site do <a href="https://www.html5dev.com.br/curso/curso-completo-de-php-7" target="_blank" rel="noopener noreferrer">HTML5dev.com.br</a>.</p>
                     <div class="footer-social">
-                        <a href="https://www.facebook.com/hcodebr" target="_blank"><i class="fa fa-facebook"></i></a>
-                        <a href="https://twitter.com/hcodebr" target="_blank"><i class="fa fa-twitter"></i></a>
-                        <a href="https://www.youtube.com/channel/UCjWENuSH2gX55-y7QSZiWxA" target="_blank"><i class="fa fa-youtube"></i></a>
+                        <a href="https://www.facebook.com/" target="_blank"><i class="fa fa-facebook"></i></a>
+                        <a href="https://twitter.com/" target="_blank"><i class="fa fa-twitter"></i></a>
+                        <a href="https://www.youtube.com/" target="_blank"><i class="fa fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-3 col-sm-6">
+
+            <div class="col-md-4 col-sm-6">
                 <div class="footer-menu">
                     <h2 class="footer-wid-title">Navegação </h2>
                     <ul>
-                        <li><a href="#">Minha Conta</a></li>
-                        <li><a href="#">Meus Pedidos</a></li>
-                        <li><a href="#">Lista de Desejos</a></li>
+                        {if="checkLogin(false)"}
+                        <li><a href="/profile">Minha Conta</a></li>
+                        <li><a href="/profile/orders">Meus Pedidos</a></li>
+                        <li><a href="/logout"><i class="fa fa-close"></i> Sair</a></li>
+                        {else}
+                        <li><a href="/login"><i class="fa fa-lock"></i> Entrar</a></li>
+                        {/if}
                     </ul>                        
                 </div>
             </div>
             
-            <div class="col-md-3 col-sm-6">
+            <div class="col-md-4 col-sm-6">
                 <div class="footer-menu">
                     <h2 class="footer-wid-title">Categorias</h2>
                     <ul>
                         {include="categories-menu"}
                     </ul>                        
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-sm-6">
-                <div class="footer-newsletter">
-                    <h2 class="footer-wid-title">Newsletter</h2>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Perferendis sunt id doloribus!</p>
-                    <div class="newsletter-form">
-                        <form action="#">
-                            <input type="email" placeholder="Type your email">
-                            <input type="submit" value="Subscribe">
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
